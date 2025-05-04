@@ -1,0 +1,12 @@
+######################################
+lilak/add       LKGETChannelViewer
+lilak/execute   0
+######################################
+
+LKRun/Name             pku2025
+LKRun/RunID            221
+LKRun/InputPath        data_conv
+LKRun/OutputPath       data_conv
+LKRun/SearchRun        conv
+LKRun/Tag              viewer
+LKRun/EventCountForMessage 1

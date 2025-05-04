@@ -1,0 +1,22 @@
+######################################
+lilak/add       LKMFMConversionTask
+ilak/print all
+//lilak/collect_par   ha
+lilak/run   120
+######################################
+
+LKRun/Name                    pku2025
+LKRun/RunID                   221
+LKRun/Tag                     conv
+LKRun/OutputPath              data_conv
+LKRun/InputPath               data_mfm
+LKRun/SearchRun               mfm
+LKRun/EventCountForMessage    20
+LKRun/AutoTerminate           true
+
+LKFrameBuilder/SetScaler      false
+LKFrameBuilder/Set2PMode      false
+LKFrameBuilder/MaxAget        4
+LKFrameBuilder/MaxAsad        4
+LKFrameBuilder/MaxCobo        4
+LKFrameBuilder/MaxChannels    68
