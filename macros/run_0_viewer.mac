@@ -1,0 +1,24 @@
+<default run_default.mac
+
+######################################
+lilak/add       LKGETChannelViewer
+ilak/print all
+lilak/auto_exit false
+#lilak/collect_par   collected_parameters
+lilak/execute   0
+######################################
+
+LKRun/Name                    pku2025
+LKRun/RunID                   {runID}
+LKRun/EventCountForMessage    100
+#LKRun/AutoTerminate           false
+
+#LKRun/InputPath               data_conv
+#LKRun/SearchRun               conv
+LKRun/InputPath               data_reco
+LKRun/SearchRun               reco
+
+LKRun/OutputPath              data_reco
+LKRun/Tag                     getv
+
+LKGETChannelViewer/ChannelBranchName HitChannel

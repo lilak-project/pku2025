@@ -1,0 +1,20 @@
+<default run_default.mac
+
+######################################
+lilak/add       MTSelectHitChannelsTask
+lilak/add       MTHitReconstructionTask
+ilak/print all
+#lilak/collect_par   collected_parameters
+lilak/run   0
+######################################
+
+LKRun/Name                    pku2025
+LKRun/RunID                   {runID}
+LKRun/EventCountForMessage    100
+LKRun/AutoTerminate           true
+
+LKRun/InputPath               data_conv
+LKRun/SearchRun               conv
+
+LKRun/OutputPath              data_reco
+LKRun/Tag                     reco

@@ -1,0 +1,26 @@
+<default run_default.mac
+
+######################################
+lilak/add       MTPreviewTask
+ilak/print all
+lilak/auto_exit false
+#lilak/collect_par   collected_parameters
+lilak/run   0
+#lilak/execute   0
+######################################
+
+LKRun/Name                    pku2025
+LKRun/RunID                   {runID}
+LKRun/EventCountForMessage    1000
+#LKRun/AutoTerminate           false
+
+LKRun/InputPath               data_reco
+LKRun/SearchRun               reco
+
+LKRun/OutputPath              data_reco
+LKRun/Tag                     preview
+
+MTPreviewTask/cvs_dx 3000*0.65
+MTPreviewTask/cvs_dy 2000*0.65
+MTPreviewTask/omit_draw_at_exe true
+#MTPreviewTask/omit_draw_at_exe false

@@ -1,18 +1,22 @@
+<default run_default.mac
+
 ######################################
 lilak/add       LKMFMConversionTask
 ilak/print all
-//lilak/collect_par   ha
-lilak/run   120
+#lilak/collect_par   collected_parameters
+lilak/run   0
 ######################################
 
 LKRun/Name                    pku2025
-LKRun/RunID                   221
-LKRun/Tag                     conv
-LKRun/OutputPath              data_conv
-LKRun/InputPath               data_mfm
-LKRun/SearchRun               mfm
+LKRun/RunID                   {runID}
 LKRun/EventCountForMessage    20
 LKRun/AutoTerminate           true
+
+LKRun/InputPath               data_mfm
+LKRun/SearchRun               mfm
+
+LKRun/OutputPath              data_conv
+LKRun/Tag                     conv
 
 LKFrameBuilder/SetScaler      false
 LKFrameBuilder/Set2PMode      false
