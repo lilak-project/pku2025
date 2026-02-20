@@ -359,7 +359,6 @@ void preview(int runID=0)
 
     fRun = new LKRun();
     fRun -> AddPar("run_3_preview.mac");
-    //if (runID>0)
     fRun -> Init();
     fPar = fRun -> GetPar();
     fRun -> Print();

@@ -5,24 +5,32 @@ double Gaussian2D(double x, double y, double xc, double yc, double sigmaX, doubl
 double IntegrateGaussian2D(double xc, double yc, double sigmaX, double sigmaY, double x0, double y0, double r0, int nPoints=100);
 double IntegrateGaussian2D_SumGamma(double sigma, double cx, double r0);
 double ApproximateGaussianIntegral(double xc, double yc, double sigmaX, double sigmaY, double x0, double y0, double r0);
+void   GetFactorAndExponent(double attenuation, int &factor, int &exponent);
 
-class Idx {
+class TAttenuatorInfo {
     public:
         int i;
-        double j;
-        Idx(int i_, double j_) : i(i_),j(j_) {}
-        ~Idx() {}
+        double hole_diameter;
+        TAttenuatorInfo(int i_, double j_) : i(i_),hole_diameter(j_) {}
+        ~TAttenuatorInfo() {}
 };
+
+const int kUniformBeamProfile = 0;
+const int kGauss2DBeamProfile = 1;
+const char* BeamTypeString(int beam_type)
+{
+    if      (beam_type==kUniformBeamProfile) return "uniform";
+    else if (beam_type==kGauss2DBeamProfile) return "gauss2D";
+    return "no_beam_type";
+}
 
 void test_attenuator()
 {
+    return;
+
     bool put1dTogether = true;
     bool chooseHoleSize = true;
-    //vector<Idx> indices = {Idx(2,0.2),Idx(3,0.14),Idx(53,0.18)};
-    //vector<Idx> indices = {Idx(2,0.12),Idx(3,0.12),Idx(53,0.12)};
-    vector<Idx> indices = {Idx(3,0.12),Idx(53,0.12)};
-
-    auto top = new LKDrawingGroup(Form("attenuator%s",chooseHoleSize?"_x":""));
+    vector<TAttenuatorInfo> attenuator_list = {TAttenuatorInfo(3,0.12),TAttenuatorInfo(53,0.12)};
 
     double wFull = 40; // width of active tantalium aread
     double xMid = 0.5*wFull;
@@ -31,7 +39,8 @@ void test_attenuator()
     int ndivy = 200;
     double sigma_factor = 3.;
 
-    int beam_types[] = {1,0};
+    int beam_types[] = {kGauss2DBeamProfile,kUniformBeamProfile};
+    //int beam_types[] = {0};
 
     //int attn_idxs[] = {2,3,4,53};
     //int attn_idxs[] = {53};
@@ -61,18 +70,14 @@ void test_attenuator()
         int attn_constant = 1;
         int attn_exponent = 0;
         if (attn_idx==1) { attn_exponent = 1; attn_factor = 1.E-1; }
-        else if (attn_idx==2) { attn_exponent = 2; attn_factor = 1.E-2; }
-        else if (attn_idx==3) {
-            attn_exponent = 3;
-            attn_factor = 1.E-3;
-            dSampleCount = 0.2;
-        }
+        else if (attn_idx==2)  { attn_exponent = 2; attn_factor = 1.E-2; }
+        else if (attn_idx==3)  { attn_exponent = 3; attn_factor = 1.E-3; dSampleCount = 0.2; }
         else if (attn_idx==4)  { attn_exponent = 4; attn_factor = 1.E-4; dSampleCount = 0.5; rmdr = 0; }
         else if (attn_idx==53) { attn_constant = 5; attn_exponent = 3; attn_factor = attn_constant*1.E-3; dSampleCount = 0.2; }
         else if (attn_idx==43) { attn_constant = 4; attn_exponent = 3; attn_factor = attn_constant*1.E-3; dSampleCount = 0.2; }
         else if (attn_idx==54) { attn_constant = 5; attn_exponent = 4; attn_factor = attn_constant*1.E-4; dSampleCount = 0.2; }
 
-        if (beam_type==1) {
+        if (beam_type==kGauss2DBeamProfile) {
             dSampleCount = dSampleCount*0.5;
         }
 
@@ -81,13 +86,15 @@ void test_attenuator()
         //drawS -> Add(frame);
 
         auto nSamples = beam_radius_array.size();
-        if (chooseHoleSize) {
+        if (chooseHoleSize)
+        {
             hole_diameter_array.clear();
             nSamples = 0;
-            for (auto idx : indices) {
+            for (auto idx : attenuator_list)
+            {
                 if (idx.i==attn_idx) {
                     nSamples = 1;
-                    hole_diameter_array.push_back(idx.j);
+                    hole_diameter_array.push_back(idx.hole_diameter);
                 }
             }
         }
@@ -103,6 +110,7 @@ void test_attenuator()
                 if (beam_radius<10) dSampleCount0 = 0.8;
             }
             dSampleCount0 = 0.1;
+            dSampleCount0 = 0.5;
 
             //TString cname = Form("cvs_%dEm%d_%d",attn_constant,attn_exponent,beam_size_number);
             //auto cvs = LKPainter::GetPainter() -> CanvasResize(cname,600*nTestHoles,1800);
@@ -247,7 +255,7 @@ void test_attenuator()
                     title = Form("A%02d [%dx10^{-%d}] d=%.2fmm, n=%d, dx=%.4fmm, dy=%.4fmm",attn_idx,attn_constant,attn_exponent,hole_diameter,int(points.size()),x_dist,y_dist);
                 hist -> SetTitle(title);
 
-                auto draw1dTogether = sub -> CreateDrawing(Form("draw_%d_%d_1d_%d_%d",attn_idx,beam_size_number,beam_type,int(put1dTogether)),put1dTogether);
+                auto draw1dTogether = sub -> CreateDrawing(Form("draw_%d_%d_1d_%s_%d",attn_idx,beam_size_number,BeamTypeString(beam_type),int(put1dTogether)),put1dTogether);
                 draw1dTogether -> SetCanvasMargin(0.12,0.12,0.12,0.12);
                 draw1dTogether -> SetPaveDx(0.5);
                 draw1dTogether -> SetPaveLineDy(0.06);
@@ -261,7 +269,7 @@ void test_attenuator()
                 TH1D* histSampleCount1[5];
                 for (auto beam_type : beam_types)
                 {
-                    auto drawAttnRatio = sub -> CreateDrawing(Form("draw_%d_%d_2d_%d_%d",attn_idx,beam_size_number,beam_type,int(put1dTogether)),put1dTogether);
+                    auto drawAttnRatio = sub -> CreateDrawing(Form("draw_%d_%d_2d_%s_%d",attn_idx,beam_size_number,BeamTypeString(beam_type),int(put1dTogether)),put1dTogether);
                     drawAttnRatio -> SetCanvasMargin(0.115,0.14,0.125,0.13);
 
                     auto graphCircle0 = NewGraph("graphCircle0",20,0.6,kBlue);
@@ -285,10 +293,10 @@ void test_attenuator()
                     graphSimCenterRange -> SetPoint(3,xs2,ys1);
                     graphSimCenterRange -> SetPoint(4,xs1,ys1);
                     int count = 0;
-                    if (beam_type==0) histSampleCount1[beam_type] = new TH1D(hname+"_bt"+beam_type+"_1d",title+Form(";Attenuation / %dx10^{-%d}",attn_constant,attn_exponent),100,1-2.0*dSampleCount0,1+2.0*dSampleCount0);
-                    if (beam_type==1) histSampleCount1[beam_type] = new TH1D(hname+"_bt"+beam_type+"_1d",title+Form(";Attenuation / %dx10^{-%d}",attn_constant,attn_exponent),100,1-0.5*dSampleCount0,1+0.5*dSampleCount0);
+                    if (beam_type==kUniformBeamProfile) histSampleCount1[beam_type] = new TH1D(hname+"_bt"+beam_type+"_1d",title+Form(";Attenuation / %dx10^{-%d}",attn_constant,attn_exponent),100,1-2.0*dSampleCount0,1+2.0*dSampleCount0);
+                    if (beam_type==kGauss2DBeamProfile) histSampleCount1[beam_type] = new TH1D(hname+"_bt"+beam_type+"_1d",title+Form(";Attenuation / %dx10^{-%d}",attn_constant,attn_exponent),100,1-0.5*dSampleCount0,1+0.5*dSampleCount0);
                     histSampleCount1[beam_type] -> SetStats(0);
-                    if (beam_type==1) histSampleCount1[beam_type] -> SetLineColor(kRed);
+                    if (beam_type==kGauss2DBeamProfile) histSampleCount1[beam_type] -> SetLineColor(kRed);
                     auto histSampleCount2 = new TH2D(hname+"_bt"+beam_type+"_2d",title+";beam-center-x (mm); beam-center-y (mm)",ndivx,xs1,xs2,ndivy,ys1,ys2);
                     histSampleCount2 -> SetContour(200);
                     histSampleCount2 -> SetStats(0);
@@ -309,12 +317,12 @@ void test_attenuator()
                                 if ( ((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)) > beam_radius*beam_radius)
                                     continue;
                                 double value = 0;
-                                if (beam_type==0) value = CircleIntersectionArea(x1, y1, beam_radius, x2, y2, hole_radius);
-                                if (beam_type==1) value = ApproximateGaussianIntegral(x1, y1, beam_sigma, beam_sigma, x2, y2, hole_radius);
+                                if (beam_type==kUniformBeamProfile) value = CircleIntersectionArea(x1, y1, beam_radius, x2, y2, hole_radius);
+                                if (beam_type==kGauss2DBeamProfile) value = ApproximateGaussianIntegral(x1, y1, beam_sigma, beam_sigma, x2, y2, hole_radius);
                                 total += value;
                             }
-                            if (beam_type==0) total = total / (TMath::Pi()*beam_radius*beam_radius);
-                            if (beam_type==1) total = total / 1;
+                            if (beam_type==kUniformBeamProfile) total = total / (TMath::Pi()*beam_radius*beam_radius);
+                            if (beam_type==kGauss2DBeamProfile) total = total / 1;
                             double countRatio = total/attn_factor;
                             histSampleCount2 -> SetBinContent(ix+1,iy+1,countRatio);
                             histSampleCount1[beam_type] -> Fill(countRatio);
@@ -345,11 +353,11 @@ void test_attenuator()
                     graphSimCenter -> SetMarkerStyle(20);
                     graphSimCenter -> SetMarkerSize(0.6);
                     graphSimCenter -> SetMarkerColor(kRed);
-                    if (beam_type==0) draw1 -> Add(graphCircle0,"samel");
-                    if (beam_type==0) draw1 -> Add(graphCircleR,"samel");
-                    if (beam_type==1) draw1 -> Add(graphCircle3,"samel");
-                    if (beam_type==1) draw1 -> Add(graphCircle2,"samel");
-                    if (beam_type==1) draw1 -> Add(graphCircle1,"samel");
+                    if (beam_type==kUniformBeamProfile) draw1 -> Add(graphCircle0,"samel");
+                    if (beam_type==kUniformBeamProfile) draw1 -> Add(graphCircleR,"samel");
+                    if (beam_type==kGauss2DBeamProfile) draw1 -> Add(graphCircle3,"samel");
+                    if (beam_type==kGauss2DBeamProfile) draw1 -> Add(graphCircle2,"samel");
+                    if (beam_type==kGauss2DBeamProfile) draw1 -> Add(graphCircle1,"samel");
 
                     drawAttnRatio -> Add(histSampleCount2,"colz");
 
@@ -358,37 +366,47 @@ void test_attenuator()
                     auto pv = new TPaveText();
                     pv -> SetFillColor(0);
                     pv -> SetFillStyle(0);
-                    if (beam_type==0) pv -> AddText("Uniform distribution");
-                    if (beam_type==1) pv -> AddText("2d-Gaus distribution");
+                    if (beam_type==kUniformBeamProfile) pv -> AddText("Uniform distribution");
+                    if (beam_type==kGauss2DBeamProfile) pv -> AddText("2d-Gaus distribution");
                     drawAttnRatio -> Add(pv);
                     drawAttnRatio -> SetPaveCorner(1);
 
-                    if (beam_type==0) lgTG -> AddEntry(histSampleCount1[beam_type],Form("Uniform (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
-                    if (beam_type==1) lgTG -> AddEntry(histSampleCount1[beam_type],Form("2d-Gaus (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
+                    if (beam_type==kUniformBeamProfile) lgTG -> AddEntry(histSampleCount1[beam_type],Form("Uniform (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
+                    if (beam_type==kGauss2DBeamProfile) lgTG -> AddEntry(histSampleCount1[beam_type],Form("2d-Gaus (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
 
                     auto lg1d = new TLegend();
                     //lg1d -> SetHeader(Form("%dx10^{-%d}, #phi=%.2f, r=%d",attn_constant,attn_exponent,hole_diameter,beam_size_number));
                     lg1d -> AddEntry((TObject*)0,Form("%dx10^{-%d}, #phi=%.2f, r=%d",attn_constant,attn_exponent,hole_diameter,beam_size_number),"");
                     lg1d -> SetFillStyle(0);
-                    if (beam_type==0) lg1d -> AddEntry(histSampleCount1[beam_type],Form("Uniform (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
-                    if (beam_type==1) lg1d -> AddEntry(histSampleCount1[beam_type],Form("2d-Gaus (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
+                    if (beam_type==kUniformBeamProfile) lg1d -> AddEntry(histSampleCount1[beam_type],Form("Uniform (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
+                    if (beam_type==kGauss2DBeamProfile) lg1d -> AddEntry(histSampleCount1[beam_type],Form("2d-Gaus (#mu=%.3f,#sigma=%.4f)",histSampleCount1[beam_type]->GetMean(),histSampleCount1[beam_type]->GetStdDev()),"l");
 
-                    auto draw1d = sub -> CreateDrawing(Form("draw_%d_%d_1d_%d_%d",attn_idx,beam_size_number,beam_type,int(put1dTogether)),!put1dTogether);
+                    auto draw1d = sub -> CreateDrawing(Form("draw_%d_%d_1d_%s_%d",attn_idx,beam_size_number,BeamTypeString(beam_type),int(put1dTogether)),!put1dTogether);
                     draw1d -> SetCanvasMargin(0.12,0.12,0.12,0.12);
                     draw1d -> SetPaveDx(1);
                     draw1d -> SetPaveLineDy(0.05);
                     draw1d -> SetStatsFillStyle(0);
                     draw1d -> SetLegendBelowStats();
-                    draw1d -> Add(histSampleCount1[beam_type]);
+                    //lk_debug << histSampleCount1[beam_type] << endl;
+                    //if (draw1d -> GetEntries()==0)
+                        draw1d -> Add(histSampleCount1[beam_type]);
+                    //else
+                    //    draw1d -> Add(histSampleCount1[beam_type],"same");
                     draw1d -> Add(lg1d);
                 }
                 if (put1dTogether) {
-                    auto max1 = histSampleCount1[0] -> GetMaximum();
-                    auto max2 = histSampleCount1[1] -> GetMaximum();
-                    if (max2>max1)
-                        histSampleCount1[0] -> SetMaximum(max2);
-                    draw1dTogether -> Add(histSampleCount1[0]);
-                    draw1dTogether -> Add(histSampleCount1[1]);
+                    double maxmax = 0;
+                    for (auto beam_type : beam_types)
+                    {
+                        auto max1 = histSampleCount1[beam_type] -> GetMaximum();
+                        if (max1>maxmax)
+                            maxmax = max1;
+                    }
+                    for (auto beam_type : beam_types)
+                    {
+                        histSampleCount1[beam_type] -> SetMaximum(maxmax);
+                        draw1dTogether -> Add(histSampleCount1[beam_type]);
+                    }
                 }
                 draw1dTogether -> Add(lgTG);
             }
@@ -530,4 +548,28 @@ TGraphErrors *NewGraphErrors(TString name, int mst, double msz, int mcl, int lst
     graph -> SetLineColor(lcl);
     graph -> SetFillStyle(0);
     return graph;
+}
+
+void GetFactorAndExponent(double attenuation, int &factor, int &exponent)
+{
+    if (attenuation == 0) {
+        factor = 0;
+        exponent = 0;
+        return;
+    }
+
+    double absA = std::fabs(attenuation);
+    exponent = static_cast<int>(std::floor(std::log10(absA)));
+    double normalized = absA / std::pow(10.0, exponent);
+
+    // Try to get factor as close as possible to an integer
+    while (std::fabs(normalized - std::round(normalized)) > 1e-8 && exponent < 308) {
+        normalized *= 10.0;
+        exponent--;
+    }
+
+    factor = static_cast<int>(std::round(normalized));
+
+    // Adjust exponent so that: attenuation ≈ factor × 10^(-exponent)
+    if (attenuation < 1) exponent = -exponent;
 }

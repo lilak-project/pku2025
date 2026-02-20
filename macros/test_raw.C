@@ -121,7 +121,8 @@ bool next()
 
 void test_raw()
 {
-    auto file = new TFile("data_conv/pku2025_0205.conv.root");
+    //auto file = new TFile("data_conv/pku2025_0205.conv.root");
+    auto file = new TFile("data_conv/pku2025_0226.conv.root");
     //auto file = new TFile("data_conv/pku2025_0221.conv.root");
     fTree = (TTree*) file -> Get("event");
     fTree -> SetBranchAddress("RawData",&fRawDataArray);

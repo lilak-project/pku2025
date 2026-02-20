@@ -122,13 +122,6 @@ void Init()
     drawMM -> Add(fMM,"l");
     drawMM -> Add(fMM,"col0");
 
-    auto file2 = new TFile("data_for_poster/poster_proton_pileup.root","read");
-    if (fRunID==198) 
-        file2 = new TFile("data_for_poster/poster_alpha.root","read");
-    auto draw_pp = (LKDrawing*) file2 -> Get("draw");
-    draw_pp -> SetStyle("ds_poster_7_87_100_z");
-    fGroupEvent -> AddDrawing(draw_pp);
-
     auto drawXT = fGroupEvent -> CreateDrawing("tpc_event_XT");
     drawXT -> SetCanvasMargin(0.1,0.13,0.08,0.08);
     drawXT -> Add(fXT,"col1");
@@ -248,7 +241,7 @@ bool next_event(int eventNo=-1)
     return true;
 }
 
-void poster_tpc_events()
+void draw_event()
 {
     gStyle -> SetPalette(kRainbow);
 
@@ -260,17 +253,17 @@ void poster_tpc_events()
     fRunID = fRun -> GetRunID();
 
     Init();
-    //while(next_event()) {}
-    next_event(760);
+    while(next_event()) {}
+    //next_event(760);
     fGroupEvent -> SetCanvasDivision(2,2);
     fGroupEvent -> SetCanvasSize(1200,1000);
     //fGroupEvent -> SetCanvasSize(1200*2,1000*2,false);
     fGroupEvent -> SetStyle("ds_poster_7_87_100_z");
     fGroupEvent -> Draw();
-    fGroupEvent -> Save();
-    auto cvs = fGroupEvent -> GetCanvas();
-    TString name = Form("preview_%d.poster",fRunID);
-    cvs -> SaveAs(Form("figures/%s.png",name.Data()));
 
-    e_info << "good: " << fCountPassEvents << endl;
+    //fGroupEvent -> Save();
+    //auto cvs = fGroupEvent -> GetCanvas();
+    //TString name = Form("preview_%d.poster",fRunID);
+    //cvs -> SaveAs(Form("figures/%s.png",name.Data()));
+    //e_info << "good: " << fCountPassEvents << endl;
 }
